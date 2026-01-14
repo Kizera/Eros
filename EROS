@@ -1,20 +1,20 @@
 --[[
-    🤖 UTD PRO BOT - V4 (Lobby/Game Fixed)
+    🤖 UTD PRO BOT - V4 (Main Edition)
     Author: Jem (AI)
-    GitHub Ready
+    Status: Final Stable
 ]]
 
--- CONFIGURATION
+-- CONFIGURATION (ตั้งค่า)
 local CONFIG = {
-    MacroFile = "UTD_Macro_1.json",      
-    ReplayFile = "UTD_ReplayCount.txt",  
-    MaxReplays = 4,                      
-    LobbyPlaceID = 5902977746,           
+    MacroFile = "UTD_Macro_1.json",      -- ชื่อไฟล์มาโคร (ตรงเป๊ะตามที่พี่บอก)
+    ReplayFile = "UTD_ReplayCount.txt",  -- ไฟล์จดเลขรอบ
+    MaxReplays = 4,                      -- จำนวนรอบสูงสุด
+    LobbyPlaceID = 5902977746,           -- ID Lobby
     
-    -- พิกัดแท่นวาปใน LOBBY (วงแดง)
+    -- พิกัดแท่นวาปใน LOBBY
     LobbyWarpPad = Vector3.new(11187, 23, 59),
     
-    -- พิกัดจุดยืนฟาร์มใน DUNGEON (ที่พี่ขอมา)
+    -- พิกัดจุดยืนฟาร์มใน DUNGEON (จุดที่พี่ขอ)
     FarmPosition = Vector3.new(-140, -87, -168) 
 }
 
@@ -28,14 +28,14 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CoreGui = game:GetService("CoreGui")
 
 ------------------------------------------------------
--- 🖥️ GUI SYSTEM
+-- 🖥️ GUI SYSTEM (หน้าจอแสดงผล)
 ------------------------------------------------------
 local GUI = {}
 function GUI.Create()
     if CoreGui:FindFirstChild("JemBotUI") then CoreGui.JemBotUI:Destroy() end
     local ScreenGui = Instance.new("ScreenGui"); ScreenGui.Name = "JemBotUI"; ScreenGui.Parent = CoreGui
     local Frame = Instance.new("Frame"); Frame.Name = "MainFrame"; Frame.Size = UDim2.new(0, 300, 0, 120); Frame.Position = UDim2.new(0.5, -150, 0.1, 0); Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30); Frame.Active = true; Frame.Draggable = true; Frame.Parent = ScreenGui
-    local Title = Instance.new("TextLabel"); Title.Text = "🤖 UTD BOT V4 (Stable)"; Title.Size = UDim2.new(1,0,0,30); Title.BackgroundColor3 = Color3.fromRGB(46, 204, 113); Title.TextColor3 = Color3.new(1,1,1); Title.Parent = Frame
+    local Title = Instance.new("TextLabel"); Title.Text = "🤖 UTD MAIN BOT V4"; Title.Size = UDim2.new(1,0,0,30); Title.BackgroundColor3 = Color3.fromRGB(0, 120, 215); Title.TextColor3 = Color3.new(1,1,1); Title.Parent = Frame
     local Status = Instance.new("TextLabel"); Status.Name = "Status"; Status.Text = "..."; Status.Size = UDim2.new(1,-20,0,30); Status.Position = UDim2.new(0,10,0,40); Status.TextColor3 = Color3.fromRGB(255,200,0); Status.Parent = Frame
     local Round = Instance.new("TextLabel"); Round.Name = "Round"; Round.Text = "..."; Round.Size = UDim2.new(1,-20,0,30); Round.Position = UDim2.new(0,10,0,70); Round.TextColor3 = Color3.fromRGB(200,200,200); Round.Parent = Frame
     return {Status = Status, Round = Round}
@@ -45,7 +45,7 @@ function GUI.SetStatus(t) if UI_Elements.Status then UI_Elements.Status.Text = "
 function GUI.SetRound(c, m) if UI_Elements.Round then UI_Elements.Round.Text = "Replay: "..c.." / "..m end end
 
 ------------------------------------------------------
--- 💾 SYSTEM
+-- 💾 SYSTEM (ระบบไฟล์)
 ------------------------------------------------------
 local function GetReplayCount() return isfile(CONFIG.ReplayFile) and tonumber(readfile(CONFIG.ReplayFile)) or 0 end
 local function SetReplayCount(n) writefile(CONFIG.ReplayFile, tostring(n)); GUI.SetRound(n, CONFIG.MaxReplays) end
@@ -74,13 +74,11 @@ local function TriggerReplay()
 end
 
 ------------------------------------------------------
--- 📍 LOCATION CHECK (หัวใจสำคัญ V4)
+-- 📍 LOCATION CHECK (เช็กว่าอยู่ไหน)
 ------------------------------------------------------
 local function IsInLobby()
-    -- เช็กตาม Path ที่พี่ให้มาเป๊ะๆ
-    if workspace:FindFirstChild("Lobby") then
-        return true
-    end
+    -- เช็กโฟลเดอร์ Lobby ชัวร์ 100%
+    if workspace:FindFirstChild("Lobby") then return true end
     return false
 end
 
@@ -88,40 +86,37 @@ end
 -- 🏠 LOBBY LOGIC
 ------------------------------------------------------
 local function HandleLobby(root)
-    GUI.SetStatus("🏠 LOBBY MODE ACTIVATED")
+    GUI.SetStatus("🏠 LOBBY MODE")
     SetReplayCount(0)
     
     task.wait(2)
     local dist = (root.Position - CONFIG.LobbyWarpPad).Magnitude
     
     if dist > 10 then
-        GUI.SetStatus("🚀 Walking to Event Portal...")
-        -- วาปไปจ่อหน้าวงแดงเลย
+        GUI.SetStatus("🚀 Walking to Portal...")
         root.CFrame = CFrame.new(CONFIG.LobbyWarpPad + Vector3.new(0, 3, 0))
     else
-        GUI.SetStatus("✅ Already at Portal")
+        GUI.SetStatus("✅ Waiting at Portal")
     end
     
-    for i = 20, 1, -1 do GUI.SetStatus("⏳ Waiting for Teleport: "..i.."s"); task.wait(1) end
-    GUI.SetStatus("🔔 Game should start soon...")
+    for i = 20, 1, -1 do GUI.SetStatus("⏳ Warp in: "..i.."s"); task.wait(1) end
 end
 
 ------------------------------------------------------
 -- ⚔️ GAME LOGIC
 ------------------------------------------------------
 local function HandleGame(root)
-    GUI.SetStatus("⚔️ DUNGEON MODE ACTIVATED")
+    GUI.SetStatus("⚔️ GAME MODE")
     local round = GetReplayCount()
     GUI.SetRound(round, CONFIG.MaxReplays)
     
-    -- 1. วาปไปจุดฟาร์ม (-140, -87, -168)
+    -- 1. วาปไปจุดฟาร์ม (-140)
     local distToFarm = (root.Position - CONFIG.FarmPosition).Magnitude
-    
     if distToFarm > 5 then
         GUI.SetStatus("🚀 Warping to Farm Spot...")
         task.wait(0.5)
         root.CFrame = CFrame.new(CONFIG.FarmPosition)
-        task.wait(1.5) -- รอตัวนิ่ง + แมพโหลด
+        task.wait(1.5) -- รอตัวนิ่ง
     else
         GUI.SetStatus("✅ At Farm Spot")
     end
@@ -130,7 +125,7 @@ local function HandleGame(root)
     GUI.SetStatus("▶ Starting Macro...")
     PlayMacro()
     
-    -- 3. รอจบเกม
+    -- 3. รอจบเกม (ตั้งเผื่อไว้ 20 วิหลังมาโครจบ)
     task.wait(20) 
     
     if round < CONFIG.MaxReplays then
@@ -138,7 +133,7 @@ local function HandleGame(root)
         SetReplayCount(round + 1)
         TriggerReplay()
     else
-        GUI.SetStatus("🛑 Finished! Returning Lobby...")
+        GUI.SetStatus("🛑 Done! Returning Lobby...")
         SetReplayCount(0)
         TeleportService:Teleport(CONFIG.LobbyPlaceID, LocalPlayer)
     end
@@ -147,14 +142,13 @@ end
 ------------------------------------------------------
 -- 🏁 START
 ------------------------------------------------------
-GUI.SetStatus("⏳ Analyzing Map...")
+GUI.SetStatus("⏳ Checking Map...")
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local root = char:WaitForChild("HumanoidRootPart", 30)
 
 if root then
-    -- เช็กแบบชัวร์ 100% ด้วย Path ที่พี่หามา
     if IsInLobby() then
         HandleLobby(root)
     else
